@@ -66,10 +66,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Commands\IGestureIntentStoreAware.cs" />
     <Compile Include="Commands\IGestureContextAware.cs" />
     <Compile Include="Commands\IGestureModifiersAware.cs" />
     <Compile Include="Commands\Impl\ChangeAudioVolumeCommand.cs" />
     <Compile Include="Commands\Impl\CmdCommand.cs" />
+    <Compile Include="Commands\Impl\AddToBacklistCommand.cs" />
     <Compile Include="Commands\Impl\DoNothingCommand.cs" />
     <Compile Include="Commands\Impl\GotoUrlCommand.cs" />
     <Compile Include="Commands\Impl\HotKeyCommand.cs" />

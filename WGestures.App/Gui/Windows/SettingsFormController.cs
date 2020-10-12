@@ -61,7 +61,9 @@ namespace WGestures.App.Gui.Windows
 
             SupportedCommands.Add(NamedAttribute.GetNameOf(typeof(PauseWGesturesCommand)), typeof(PauseWGesturesCommand));
             SupportedCommands.Add(NamedAttribute.GetNameOf(typeof(ChangeAudioVolumeCommand)), typeof(ChangeAudioVolumeCommand));
-            
+            SupportedCommands.Add(NamedAttribute.GetNameOf(typeof(AddToBacklistCommand)), typeof(AddToBacklistCommand));
+
+            CommandViewFactory.Register<AddToBacklistCommand, GeneralNoParameterCommandView>();
             CommandViewFactory.Register<OpenFileCommand, OpenFileCommandView>();
             CommandViewFactory.Register<DoNothingCommand, GeneralNoParameterCommandView>();
             CommandViewFactory.Register<HotKeyCommand, HotKeyCommandView>();

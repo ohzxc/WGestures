@@ -45,6 +45,10 @@ namespace WGestures.Core
             var parserAware = this.Command as IGestureParserAware;
             if (parserAware != null) parserAware.Parser = gestureParser;
 
+            //var intentStoreAware = Command as IGestureIntentStoreAware;
+            //if (intentStoreAware != null) intentStoreAware.IntentStore = null;
+
+
             var shouldInit = this.Command as INeedInit;
             if (shouldInit != null && !shouldInit.IsInitialized)
             {
