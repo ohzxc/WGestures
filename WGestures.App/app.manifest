@@ -3,10 +3,9 @@
   <assemblyIdentity version="1.8.4.0" name="WGestures.app" />
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
     <security>
-      <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
-
-        <requestedExecutionLevel level="asInvoker" uiAccess="true" />
-      </requestedPrivileges>
+		<!--<requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
+		<requestedExecutionLevel level="asInvoker" uiAccess="true" />
+		</requestedPrivileges>-->
       <applicationRequestMinimum>
         <defaultAssemblyRequest permissionSetReference="Custom" />
         <PermissionSet ID="Custom" SameSite="site" Unrestricted="false" />
