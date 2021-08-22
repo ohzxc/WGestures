@@ -65,11 +65,6 @@ namespace WGestures.View.Impl.Windows
             get { return _shadowPenWidth; }
             set { /*_shadowPenWidth = _shadowPen.Width = value;*/ } //TODO: ignore for temporarily
         }
-        public int PathMaxPointCount
-        {
-            get { return _pathMaxPointCount; }
-            set { _pathMaxPointCount = value; }
-        }
         public bool ShowPath { get; set; }
         public bool ShowCommandName { get; set; }
         public bool ViewFadeOut { get; set; }
@@ -96,7 +91,6 @@ namespace WGestures.View.Impl.Windows
 
         Rectangle _screenBounds = Native.GetScreenBounds();
         float _dpiFactor = Native.GetScreenDpi() / 96.0f;
-        int _pathMaxPointCount;
 
         CanvasWindow _canvasWindow;
         DiBitmap _canvasBuf;
@@ -108,9 +102,10 @@ namespace WGestures.View.Impl.Windows
         Color _labelColor;
         Color _systemColor;
         Color _labelBgColor;
+        Color _StrokeColor;
         bool _labelChanged;
         GraphicsPath _labelPath = new GraphicsPath();
-        Font _labelFont = new Font("微软雅黑", 32);
+        Font _labelFont = new Font("微软雅黑", 40);
 
         bool _isCurrentRecognized;
         bool _recognizeStateChanged;
@@ -171,16 +166,15 @@ namespace WGestures.View.Impl.Windows
             ShowPath = true;
             ViewFadeOut = true;
 
-            _pathMaxPointCount = (int)(512 * _dpiFactor);
 
-            var widthBase = 2 * _dpiFactor;
+            var widthBase = 2 * _dpiFactor + 1;
 
             #region init pens
             _mainPen = new Pen(Color.FromArgb(255, 50, 200, 100), widthBase) { EndCap = LineCap.Round, StartCap = LineCap.Round };
             _middleBtnPen = new Pen(Color.FromArgb(255, 20, 150, 200), widthBase) { EndCap = LineCap.Round, StartCap = LineCap.Round };
             _xBtnPen = new Pen(Color.FromArgb(255, 20, 100, 200), widthBase) { EndCap = LineCap.Round, StartCap = LineCap.Round };
             _borderPen = new Pen(Color.FromArgb(255, 255, 255, 255), widthBase + 4) { EndCap = LineCap.Round, StartCap = LineCap.Round };
-            _alternativePen = new Pen(Color.FromArgb(255, 255, 120, 20), widthBase) { EndCap = LineCap.Round, StartCap = LineCap.Round };
+            _alternativePen = new Pen(Color.FromArgb(230, 255, 120, 20), widthBase) { EndCap = LineCap.Round, StartCap = LineCap.Round };
 
 
             //_shadowPen = new Pen(Color.FromArgb(25, Color.Black), widthBase * 3) { EndCap = LineCap.Round, StartCap = LineCap.Round };
@@ -223,20 +217,8 @@ namespace WGestures.View.Impl.Windows
         private void HandlePathGrow(PathEventArgs args)
         {
             if (!ShowPath && !ShowCommandName) return;
-            if (_pointCount > _pathMaxPointCount) return;
-
+            
             _pointCount++;
-
-            if (_pointCount == _pathMaxPointCount)
-            {
-                ShowLabel(Color.White, "您是有多无聊啊 :)", Color.FromArgb(150, 255, 0, 0));
-
-                DrawAndUpdate();
-                _labelChanged = false;
-                _recognizeStateChanged = false;
-
-                return;
-            }
 
             var curPos = args.Location;//ToUpLeftCoord(args.Location);
 
@@ -246,16 +228,20 @@ namespace WGestures.View.Impl.Windows
                 var pA = new Point(_prevPoint.X - _screenBounds.X, _prevPoint.Y - _screenBounds.Y);
                 var pB = new Point(curPos.X - _screenBounds.X, curPos.Y - _screenBounds.Y);
 
-                if (pA != pB)
-                {
+                // 使划线更平滑
+                // if (pA != pB)
+                int x = Math.Abs(pB.X - pA.X);
+                int y = Math.Abs(pB.Y - pA.Y);
+                if ((x * x + y * y) < 16) {return;}
+                else {
                     _gPath.AddLine(pA, pB);
 
                     _gPathDirty.Reset();
                     _gPathDirty.AddLine(pA, pB);
                     _gPathDirty.Widen(_dirtyMarkerPen);
+                    curPos = new Point(pB.X + _screenBounds.X, pB.Y + _screenBounds.Y);
                 }
 
-                curPos = new Point(pB.X + _screenBounds.X, pB.Y + _screenBounds.Y);
             }
 
             DrawAndUpdate();
@@ -275,7 +261,7 @@ namespace WGestures.View.Impl.Windows
             {
                 var modifierText = intent.Gesture.Modifier.ToMnemonic();
                 var newLabelText = intent.Name + (modifierText == String.Empty ? String.Empty : (" " + modifierText));
-                ShowLabel(Color.White, newLabelText, Color.FromArgb(120, 0, 0, 0));
+                ShowLabel(Color.White, newLabelText, Color.FromArgb(180, 51, 105, 232));
             }
             
             if (!_isCurrentRecognized && ShowPath)
@@ -283,6 +269,7 @@ namespace WGestures.View.Impl.Windows
                 _isCurrentRecognized = true;
                 _recognizeStateChanged = true;
                 _pathPen = _tempMainPen;
+                _StrokeColor = _pathPen.Color;
                 //ResetPathDirtyRect();
             }
 
@@ -503,7 +490,7 @@ namespace WGestures.View.Impl.Windows
             if (ShowPath && _pathVisible)
             {
                 //g.DrawPath(_shadowPen, _gPath);
-                g.DrawPath(_borderPen, _gPath);
+                // g.DrawPath(_borderPen, _gPath);
                 g.DrawPath(_pathPen, _gPath);
             }
             #endregion
@@ -519,13 +506,13 @@ namespace WGestures.View.Impl.Windows
                     /*DrawRoundedRectangle(g, RectangleF.Inflate(_labelRect,
                         -1f * _dpiFactor, -1f * _dpiFactor),
                         (int)(12 * _dpiFactor), shadow, Color.Transparent);*/
-                    DrawRoundedRectangle(g, RectangleF.Inflate(_labelRect,
-                        -2.6f * _dpiFactor, -2.6f * _dpiFactor),
-                        0, pen, _labelBgColor);
+                    // DrawRoundedRectangle(g, RectangleF.Inflate(_labelRect,
+                    //     -5.2f * _dpiFactor, -5.2f * _dpiFactor),
+                    //     0, pen, _labelBgColor);
 
                     //if (_labelColor != Color.White)
-                        //using (var stroke = new Pen(Color.Black, 1.5f * _dpiFactor))
-                        //    g.DrawPath(stroke, _labelPath);
+                    using (var stroke = new Pen(_StrokeColor, 6f * _dpiFactor))
+                       g.DrawPath(stroke, _labelPath);
 
                     using (Brush brush = new SolidBrush(_labelColor)) g.FillPath(brush, _labelPath);
                 }
@@ -641,7 +628,9 @@ namespace WGestures.View.Impl.Windows
             _lastLabelRect = _labelRect;
 
             _labelPath.Reset();
-            var msgPos = new PointF(_screenBounds.Width / 2, (_screenBounds.Height / 2) + _screenBounds.Width / 8);
+            Rectangle workingArea = System.Windows.Forms.Screen.PrimaryScreen.WorkingArea;
+            var taskBarHeight = (_screenBounds.Width - workingArea.Width) + (_screenBounds.Height - workingArea.Height);
+            var msgPos = new PointF(_screenBounds.Width / 2, workingArea.Height - 3 * taskBarHeight / 2);
             
             _labelPath.AddString(_labelText, _labelFont.FontFamily, 0, _labelFont.Size * _dpiFactor, msgPos, StringFormat.GenericDefault);
             _labelRect = _labelPath.GetBounds();
